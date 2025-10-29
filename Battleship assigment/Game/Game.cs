@@ -15,6 +15,13 @@ public class Game
     {
         firstBoard = new Board();
         secondBoard = new Board();
+        
+        var fleet1 = FleetSetup.CreateStandardFleet();
+        var fleet2 = FleetSetup.CreateStandardFleet();
+
+        firstBoard.PlaceFleet(fleet1);
+        secondBoard.PlaceFleet(fleet2);
+
         firstPlayer = new Player("Player 1", firstBoard);
         secondPlayer = new Player("Player 2", secondBoard);
     }

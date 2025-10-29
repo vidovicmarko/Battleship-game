@@ -18,17 +18,6 @@ public class Board
         for(int row = 0; row < boardSize; row++)
             for(int col = 0; col < boardSize; col++)
                 grid[row, col] = 'E';
-        
-        var shipsToPlace = new List<Ship>
-        {
-            new ("Carrier", 5),
-            new ("Battleship", 4),
-            new ("Cruiser", 3),
-            new ("Submarine", 3),
-            new ("Destroyer", 2)
-        };
-        
-        new Placement.ShipPlacer().PlaceFleet(this, shipsToPlace);
 
     }
    
@@ -40,6 +29,11 @@ public class Board
     { 
         grid[row, col] = symbol;
     } 
+    
+    public void PlaceFleet(IEnumerable<Ship> fleet)
+    {
+        new Placement.ShipPlacer().PlaceFleet(this, fleet);
+    }
     
     public bool AllShipsSunk()
     {
