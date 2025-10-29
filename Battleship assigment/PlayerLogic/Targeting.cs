@@ -95,7 +95,7 @@ namespace Battleship_assigment.Model
                 if (minShipSize >= 2 && (row + col) % 2 != 0)
                     continue;
 
-                if (!firedShots.Contains((row, col)) && FitsMinShipAt(row, col, minShipSize))
+                if (!firedShots.Contains((row, col)) && CanMinShipFitAt(row, col, minShipSize))
                     return (row, col);
             }
 
@@ -104,7 +104,7 @@ namespace Battleship_assigment.Model
                 for (int col = 0; col < boardSize; col++)
                 {
                     if (minShipSize >= 2 && (row + col) % 2 != 0) continue;
-                    if (!firedShots.Contains((row, col)) && FitsMinShipAt(row, col, minShipSize))
+                    if (!firedShots.Contains((row, col)) && CanMinShipFitAt(row, col, minShipSize))
                         return (row, col);
                 }
             }
@@ -319,7 +319,7 @@ namespace Battleship_assigment.Model
             return opposite;
         }
 
-        private bool FitsMinShipAt(int r, int c, int minSize)
+        private bool CanMinShipFitAt(int r, int c, int minSize)
         {
             if (!IsInBounds(r, c) || firedShots.Contains((r, c))) return false;
 
