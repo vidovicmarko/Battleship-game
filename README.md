@@ -30,8 +30,8 @@ When hit occurs, the player switches into a targeting mode:
 - If the ship isn't sunk when reaching the out of bounds or miss, the player reverses the direction and shoots the other way from the original hit until the ship is destroyed.
 
 To make searching more efficient, the player uses two strategies:
-1. Before firing at the tile, the algorithm checks if the smallest remaining ship could fit horizontally or vertically in that area. If not, it skips the cell and tries again.
-2. The player only shoots every other cell in checkerboard pattern. Because no ship is smaller than two tiles, which guarantees that no ship can be between missed shots.
+1. Before firing at the tile, the algorithm checks if the smallest remaining ship could fit horizontally or vertically in that area. If the space is too small in both directions, it skips the cell and tries again.
+2. During the hunting phase, the player also fires only on every other cell, following a checkerboard pattern. Because no ship is smaller than two tiles, which guarantees that no ship can be between missed shots.
 
 After every shot, the program prints the move and displays the current state of the board, allowing the spectator to visually track progress.
 The game continues until one player sinks all the opponent's ships.
