@@ -100,9 +100,14 @@ namespace Battleship_assigment.Model
             }
 
             for (int row = 0; row < boardSize; row++)
+            {
                 for (int col = 0; col < boardSize; col++)
-                    if (!firedShots.Contains((row, col)))
+                {
+                    if (minShipSize >= 2 && (row + col) % 2 != 0) continue;
+                    if (!firedShots.Contains((row, col)) && FitsMinShipAt(row, col, minShipSize))
                         return (row, col);
+                }
+            }
 
             return (0, 0);
         }
