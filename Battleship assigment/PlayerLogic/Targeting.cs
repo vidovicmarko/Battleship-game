@@ -26,11 +26,6 @@
             this.remainingShipSizes = remainingShipSizes;
         }
         
-        private int GetSmallestRemainingShipSize() 
-        {
-            return remainingShipSizes.Count > 0 ? remainingShipSizes.Min() : 1;
-        }
-        
         public (int row, int col) ChooseShot()
         {
             if (firstHitInCurrentPhase is null)
@@ -41,24 +36,43 @@
 
             return FollowLine();
         }
-
-        public void OnHit((int row, int col) coordinate)
+        
+        public void OnHit((int row, int col) coordinate) 
         {
             if (firstHitInCurrentPhase is null)
             {
                 StartNewPhase(coordinate);
                 return;
             }
-            
+                    
             latestHit = coordinate;
-
+        
             if (activeDirection is null && firstHitInCurrentPhase is not null)
                 TryLockDirectionFrom(coordinate);
         }
-
+        
         public void OnSunk()
         {
             ResetAndUseNextTarget();
+        }
+        
+        private void ResetAndUseNextTarget()
+        {
+            if (queuedTargets.Count > 0)
+            {
+                var target = queuedTargets.Dequeue();
+                enqueuedTargets.Remove(target);
+
+                firstHitInCurrentPhase = target;
+                latestHit = null;
+                activeDirection = null;
+                blockedDirections .Clear();
+
+                availableDirections = GetRandomizedDirections();
+                return;
+            }
+
+            ResetTargeting();
         }
         
         private void StartNewPhase((int row, int col) firstHit)
@@ -69,13 +83,34 @@
             activeDirection = null;
             blockedDirections .Clear();
 
-            availableDirections  = Enum.GetValues(typeof(Direction))
-                .Cast<Direction>()
-                .OrderBy(_ => random.Next())
-                .ToList();
+            availableDirections = GetRandomizedDirections();
 
             queuedTargets.Clear();
             enqueuedTargets.Clear();
+        }
+        
+        private void ResetTargeting()
+        {
+            firstHitInCurrentPhase = null;
+            latestHit = null;
+            activeDirection = null;
+            availableDirections.Clear();
+            blockedDirections.Clear();
+        }
+        
+        private (int row, int col) UseNextTarget()
+        {
+            var target = queuedTargets.Dequeue();
+            enqueuedTargets.Remove(target);
+
+            firstHitInCurrentPhase = target;
+            latestHit = null;
+            activeDirection = null;
+            blockedDirections .Clear();
+
+            availableDirections = GetRandomizedDirections();
+
+            return ExploreFromFirstHit();
         }
         
         private (int row, int col) HuntForNewShip()
@@ -107,7 +142,7 @@
 
             return (0, 0);
         }
-
+        
         private (int row, int col) ExploreFromFirstHit()
         {
             var (row0, col0) = firstHitInCurrentPhase!.Value;
@@ -182,75 +217,6 @@
             return HuntForNewShip();
         }
         
-        private (int row, int col)? GetNextStep((int row, int col) from, Direction direction)
-        {
-            var (deltaRow, deltaCol) = GetDirectionOffset(direction);
-
-            int newRow = from.row + deltaRow;
-            int newCol = from.col + deltaCol;
-
-            if (!IsInBounds(newRow, newCol))
-                return null;
-
-            var next = (newRow, newCol);
-            if (firedShots.Contains(next))
-                return null;
-
-            return next;
-        }
-        
-
-        private void ResetTargeting()
-        {
-            firstHitInCurrentPhase = null;
-            latestHit = null;
-            activeDirection = null;
-            availableDirections.Clear();
-            blockedDirections.Clear();
-        }
-
-        private void ResetAndUseNextTarget()
-        {
-            if (queuedTargets.Count > 0)
-            {
-                var target = queuedTargets.Dequeue();
-                enqueuedTargets.Remove(target);
-
-                firstHitInCurrentPhase = target;
-                latestHit = null;
-                activeDirection = null;
-                blockedDirections .Clear();
-
-                availableDirections = GetRandomizedDirections();
-                return;
-            }
-
-            ResetTargeting();
-        }
-
-        private (int row, int col) UseNextTarget()
-        {
-            var target = queuedTargets.Dequeue();
-            enqueuedTargets.Remove(target);
-
-            firstHitInCurrentPhase = target;
-            latestHit = null;
-            activeDirection = null;
-            blockedDirections .Clear();
-
-            availableDirections = GetRandomizedDirections();
-
-            return ExploreFromFirstHit();
-        }
-        
-        private List<Direction> GetRandomizedDirections()
-        {
-            return Enum.GetValues(typeof(Direction))
-                .Cast<Direction>()
-                .OrderBy(_ => random.Next())
-                .ToList();
-        }
-
         private void TryLockDirectionFrom((int row, int col) shot)
         {
             var (originalRow, originalCol) = firstHitInCurrentPhase.Value;
@@ -270,33 +236,60 @@
 
             EnqueueNextTargetIfNew(shot);
         }
-
+        
         private void EnqueueNextTargetIfNew((int row, int col) shot)
         {
             if (firstHitInCurrentPhase.HasValue && shot == firstHitInCurrentPhase.Value) return;
             if (enqueuedTargets.Add(shot))
                 queuedTargets.Enqueue(shot);
         }
-
+        
         private void MarkDirectionFailed(Direction d)
         {
             if (!blockedDirections .Contains(d))
                 blockedDirections .Add(d);
         }
-
-        private bool IsInBounds(int row, int col) =>
-            row >= 0 && row < boardSize && col >= 0 && col < boardSize;
-
+        
+        private List<Direction> GetRandomizedDirections()
+        {
+            return Enum.GetValues(typeof(Direction))
+                .Cast<Direction>()
+                .OrderBy(_ => random.Next())
+                .ToList();
+        }
+        
         private static (int deltaRow, int deltaCol) GetDirectionOffset(Direction direction)
         {
             return DirectionHelper.GetOffset(direction);
         }
-
+        
         private static Direction GetOppositeDirection(Direction direction)
         {
             return DirectionHelper.GetOpposite(direction);
         }
+        
+        private bool IsInBounds(int row, int col)
+        {
+            return row >= 0 && row < boardSize && col >= 0 && col < boardSize;
+        }
+        
+        private (int row, int col)? GetNextStep((int row, int col) from, Direction direction)
+        {
+            var (deltaRow, deltaCol) = GetDirectionOffset(direction);
 
+            int newRow = from.row + deltaRow;
+            int newCol = from.col + deltaCol;
+
+            if (!IsInBounds(newRow, newCol))
+                return null;
+
+            var next = (newRow, newCol);
+            if (firedShots.Contains(next))
+                return null;
+
+            return next;
+        }
+        
         private bool CanMinShipFitAt(int r, int c, int minSize)
         {
             if (!IsInBounds(r, c) || firedShots.Contains((r, c))) return false;
@@ -323,6 +316,11 @@
                 count++;
             }
             return count;
+        }
+        
+        private int GetSmallestRemainingShipSize() 
+        {
+            return remainingShipSizes.Count > 0 ? remainingShipSizes.Min() : 1;
         }
         
     }
