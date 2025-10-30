@@ -30,8 +30,8 @@ namespace Battleship_assigment.Model
 
             if (IsSunk(result))
             {
-                
                 var shipName = GetSunkName(result);
+                player.Targeting.OnHit(shot);
                 player.RemoveSunkByName(shipName);
                 player.Targeting.OnSunk();
                 return;

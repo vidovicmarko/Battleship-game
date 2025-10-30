@@ -118,29 +118,82 @@
             int minShipSize = GetSmallestRemainingShipSize();
             int maxRandomTries = 1000;
 
-            for (int i = 0; i < maxRandomTries; i++)
+            var shot = TryRandomAlternateCells(maxRandomTries, minShipSize, even: true);
+            if (shot != null) return shot.Value;
+
+            shot = TryScanAlternateCells(minShipSize, even: true);
+            if (shot != null) return shot.Value;
+
+            shot = TryRandomAlternateCells(maxRandomTries, minShipSize, even: false);
+            if (shot != null) return shot.Value;
+
+            shot = TryScanAlternateCells(minShipSize, even: false);
+            if (shot != null) return shot.Value;
+
+            shot = TryScanAllCells();
+            if (shot != null) return shot.Value;
+
+            return (0, 0);
+        }
+        
+        private (int row, int col)? TryRandomAlternateCells(int tries, int minShipSize, bool even)
+        {
+            for (int i = 0; i < tries; i++)
             {
                 int row = random.Next(0, boardSize);
                 int col = random.Next(0, boardSize);
-                
-                if (minShipSize >= 2 && (row + col) % 2 != 0)
+
+                if (minShipSize >= 2 && !IsAlternateCell(row, col, even))
                     continue;
 
                 if (!firedShots.Contains((row, col)) && CanMinShipFitAt(row, col, minShipSize))
                     return (row, col);
             }
-
+            return null;
+        }
+        
+        private (int row, int col)? TryScanAlternateCells(int minShipSize, bool even)
+        {
+            var candidates = new List<(int, int)>();
             for (int row = 0; row < boardSize; row++)
             {
                 for (int col = 0; col < boardSize; col++)
                 {
-                    if (minShipSize >= 2 && (row + col) % 2 != 0) continue;
+                    if (minShipSize >= 2 && !IsAlternateCell(row, col, even))
+                        continue;
+
                     if (!firedShots.Contains((row, col)) && CanMinShipFitAt(row, col, minShipSize))
-                        return (row, col);
+                        candidates.Add((row, col));
                 }
             }
 
-            return (0, 0);
+            if (candidates.Count > 0)
+                return candidates[random.Next(candidates.Count)];
+
+            return null;
+        }
+        
+        private (int row, int col)? TryScanAllCells()
+        {
+            var allCells = new List<(int, int)>();
+            for (int row = 0; row < boardSize; row++)
+            {
+                for (int col = 0; col < boardSize; col++)
+                {
+                    if (!firedShots.Contains((row, col)))
+                        allCells.Add((row, col));
+                }
+            }
+
+            if (allCells.Count > 0)
+                return allCells[random.Next(allCells.Count)];
+
+            return null;
+        }
+        
+        private bool IsAlternateCell(int row, int col, bool even)
+        {
+            return even ? (row + col) % 2 == 0 : (row + col) % 2 != 0;
         }
         
         private (int row, int col) ExploreFromFirstHit()
@@ -155,9 +208,12 @@
                 availableDirections.RemoveAt(0);
 
                 var (deltaRow, deltaCol) = GetDirectionOffset(direction);
+                var opposite = GetOppositeDirection(direction);
+                var (backRow, backCol) = GetDirectionOffset(opposite);
 
                 int openForward = CountConsecutiveOpenCells(row0, col0, deltaRow, deltaCol);
-                if (openForward + 1 < minShipSize)
+                int openBackward = CountConsecutiveOpenCells(row0, col0, backRow, backCol);
+                if (openForward + 1 + openBackward < minShipSize)
                     continue;
 
                 int targetRow = row0 + deltaRow;
@@ -212,6 +268,9 @@
                 activeDirection = remainingDirections[random.Next(remainingDirections.Count)];
                 return FollowLine();
             }
+
+            if (queuedTargets.Count > 0)
+                return UseNextTarget();
 
             ResetTargeting();
             return HuntForNewShip();
