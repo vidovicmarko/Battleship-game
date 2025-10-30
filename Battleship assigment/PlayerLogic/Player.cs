@@ -1,6 +1,8 @@
 ﻿using Battleship_assigment.Game;
+using Battleship_assigment.Model;
+using Battleship_assigment.PlayerLogic.TargetingLogic;
 
-namespace Battleship_assigment.Model
+namespace Battleship_assigment.PlayerLogic
 {
     public class Player
     {

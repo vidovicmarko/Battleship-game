@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Battleship_assigment.PlayerLogic;
 
 namespace Battleship_assigment.Model
 {
