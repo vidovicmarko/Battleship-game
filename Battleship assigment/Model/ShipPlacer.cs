@@ -86,14 +86,10 @@
             return true;
         }
 
-        private static (int deltaRow, int deltaCol) GetDirectionDelta(int direction) => direction switch
+        private static (int deltaRow, int deltaCol) GetDirectionDelta(int direction)
         {
-            0 => (-1, 0), // Up
-            1 => ( 0, 1), // Right
-            2 => ( 1, 0), // Down
-            3 => ( 0,-1), // Left
-            _ => throw new ArgumentOutOfRangeException(nameof(direction))
-        };
+            return DirectionHelper.GetOffset((Direction)direction);
+        }
         
         private static bool IsOutOfBounds(int boardSize, int row, int col)
         {

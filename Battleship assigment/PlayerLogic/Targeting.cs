@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Battleship_assigment.Model
+﻿namespace Battleship_assigment.Model
 {
 
     public sealed class Targeting
     {
-        private enum Direction { Up, Right, Down, Left }
         private static readonly Random random = new();
         
         private readonly int boardSize;
@@ -294,30 +289,12 @@ namespace Battleship_assigment.Model
 
         private static (int deltaRow, int deltaCol) GetDirectionOffset(Direction direction)
         {
-            (int deltaRow, int deltaCol) offset = direction switch
-            {
-                Direction.Up    => (-1, 0),
-                Direction.Right => (0, 1),
-                Direction.Down  => (1, 0),
-                Direction.Left  => (0, -1),
-                _               => (0, 0)
-            };
-
-            return offset;
+            return DirectionHelper.GetOffset(direction);
         }
 
         private static Direction GetOppositeDirection(Direction direction)
         {
-            Direction opposite = direction switch
-            {
-                Direction.Up    => Direction.Down,
-                Direction.Down  => Direction.Up,
-                Direction.Left  => Direction.Right,
-                Direction.Right => Direction.Left,
-                _               => direction
-            };
-
-            return opposite;
+            return DirectionHelper.GetOpposite(direction);
         }
 
         private bool CanMinShipFitAt(int r, int c, int minSize)
