@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Battleship_assigment.Game;
+﻿using Battleship_assigment.Game;
 
 namespace Battleship_assigment.Model
 {
@@ -41,20 +40,11 @@ namespace Battleship_assigment.Model
         
         internal void RemoveSunkByName(string shipName)
         {
-            int size = shipName switch
-            {
-                "Carrier" => 5,
-                "Battleship" => 4,
-                "Cruiser" => 3,
-                "Submarine" => 3,
-                "Destroyer" => 2,
-                _ => 0
-            };
-
-            if (size == 0) return;
-
-            var index = remainingShipSizes.IndexOf(size);
-            if (index >= 0) remainingShipSizes.RemoveAt(index);
+           if (GameSettings.ShipSizes.ContainsKey(shipName))
+           {
+               int size = GameSettings.ShipSizes[shipName];
+               remainingShipSizes.Remove(size);
+           }
         }
         
         

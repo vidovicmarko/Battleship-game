@@ -86,8 +86,9 @@ namespace Battleship_assigment.Model
         private (int row, int col) HuntForNewShip()
         {
             int minShipSize = GetSmallestRemainingShipSize();
+            int maxRandomTries = 1000;
 
-            for (int i = 0; i < 2000; i++)
+            for (int i = 0; i < maxRandomTries; i++)
             {
                 int row = random.Next(0, boardSize);
                 int col = random.Next(0, boardSize);
