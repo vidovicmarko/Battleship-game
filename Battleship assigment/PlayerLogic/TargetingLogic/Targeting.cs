@@ -1,61 +1,60 @@
 ﻿using Battleship_assigment.Model;
 
-namespace Battleship_assigment.PlayerLogic.TargetingLogic
+namespace Battleship_assigment.PlayerLogic.TargetingLogic;
 
+public sealed partial class Targeting 
 {
-    public sealed partial class Targeting
+    private static readonly Random random = new();
+
+    private readonly int boardSize;
+    private readonly HashSet<(int row, int col)> firedShots;
+    private readonly List<int> remainingShipSizes;
+
+    private (int row, int col)? firstHitInCurrentPhase;
+    private (int row, int col)? latestHit;
+    private Direction? activeDirection;
+
+    private List<Direction> availableDirections = new();
+    private readonly List<Direction> blockedDirections = new();
+
+    private readonly Queue<(int row, int col)> queuedTargets = new();
+    private readonly HashSet<(int row, int col)> enqueuedTargets = new();
+
+    public Targeting(int boardSize, HashSet<(int row, int col)> firedShots, List<int> remainingShipSizes)
     {
-        private static readonly Random random = new();
+        this.boardSize = boardSize;
+        this.firedShots = firedShots;
+        this.remainingShipSizes = remainingShipSizes;
+    }
 
-        private readonly int boardSize;
-        private readonly HashSet<(int row, int col)> firedShots;
-        private readonly List<int> remainingShipSizes;
+    public (int row, int col) ChooseShot()
+    {
+        if (firstHitInCurrentPhase is null)
+            return HuntForNewShip();
 
-        private (int row, int col)? firstHitInCurrentPhase;
-        private (int row, int col)? latestHit;
-        private Direction? activeDirection;
+        if (activeDirection is null)
+            return ExploreFromFirstHit();
 
-        private List<Direction> availableDirections = new();
-        private readonly List<Direction> blockedDirections = new();
+        return FollowLine();
+    }
 
-        private readonly Queue<(int row, int col)> queuedTargets = new();
-        private readonly HashSet<(int row, int col)> enqueuedTargets = new();
-
-        public Targeting(int boardSize, HashSet<(int row, int col)> firedShots, List<int> remainingShipSizes)
+    public void OnHit((int row, int col) coordinate)
+    {
+        if (firstHitInCurrentPhase is null)
         {
-            this.boardSize = boardSize;
-            this.firedShots = firedShots;
-            this.remainingShipSizes = remainingShipSizes;
+            StartNewPhase(coordinate);
+            return;
         }
 
-        public (int row, int col) ChooseShot()
-        {
-            if (firstHitInCurrentPhase is null)
-                return HuntForNewShip();
+        latestHit = coordinate;
 
-            if (activeDirection is null)
-                return ExploreFromFirstHit();
-
-            return FollowLine();
-        }
-
-        public void OnHit((int row, int col) coordinate)
-        {
-            if (firstHitInCurrentPhase is null)
-            {
-                StartNewPhase(coordinate);
-                return;
-            }
-
-            latestHit = coordinate;
-
-            if (activeDirection is null && firstHitInCurrentPhase is not null)
+        if (activeDirection is null && firstHitInCurrentPhase is not null)
                 TryLockDirectionFrom(coordinate);
-        }
+    }
 
-        public void OnSunk()
-        {
-            ResetAndUseNextTarget();
-        }
+    public void OnSunk()
+    {
+        ResetAndUseNextTarget();
     }
 }
+

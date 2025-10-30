@@ -38,7 +38,6 @@ namespace Battleship_assigment.Model
             }
         }
         
-
         private static bool IsInvalid(string result) 
         {
             return string.Equals(result, "Invalid");

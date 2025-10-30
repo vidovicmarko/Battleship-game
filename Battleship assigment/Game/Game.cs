@@ -10,8 +10,7 @@ public class Game
     private readonly Player secondPlayer;
     private readonly Board firstBoard;
     private readonly Board secondBoard;
-
-
+    
     public Game()
     {
         firstBoard = new Board();
